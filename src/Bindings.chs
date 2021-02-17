@@ -29,34 +29,26 @@ import Foreign.C.Types
 -- Cursor
 --
 
-{# fun unsafe cursor_uri as ^
-  { `Cursor'
-  } -> `String' #}
+cursorUri :: Cursor -> IO String
+cursorUri = {# get __wt_cursor->uri #} >=> peekCString
 
-{# fun unsafe cursor_key_format as ^
-  { `Cursor'
-  } -> `String' #}
+cursorKeyFormat :: Cursor -> IO String
+cursorKeyFormat = {# get __wt_cursor->key_format #} >=> peekCString
 
-{# fun unsafe cursor_value_format as ^
-  { `Cursor'
-  } -> `String' #}
+cursorValueFormat :: Cursor -> IO String
+cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
 --get_key1
 
 {# fun unsafe cursor_get_key1 as ^
   { `Cursor'
   , alloca- `String' peekCString2*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe cursor_get_value1 as ^
   { `Cursor'
   , alloca- `String' peekCString2*
-  } -> `Int' errorCheck*- #}
-
-peekCString2 :: Ptr CString -> IO String
-peekCString2 = peek >=> peekCString
-
---get_value1
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe cursor_set_key1 as ^
   { `Cursor'
@@ -72,84 +64,84 @@ peekCString2 = peek >=> peekCString
   { `Cursor'
   , `Cursor'
   , alloca- `Int' peekInt*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_equals as ^
   { `Cursor'
   , `Cursor'
   , alloca- `Int' peekInt*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_next as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_prev as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_reset as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_search as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_search_near as ^
   { `Cursor'
   , alloca- `Int' peekInt*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_insert as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 -- cursor_modify
 
 {# fun unsafe cursor_update as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_remove as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_reserve as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_close as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_reconfigure as ^
   { `Cursor'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_cache as ^
   { `Cursor'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe cursor_reopen as ^
   { `Cursor'
   , `Bool'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 --
@@ -159,13 +151,13 @@ peekCString2 = peek >=> peekCString
 {# fun unsafe session_close as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe session_reconfigure as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe session_strerror as ^
@@ -179,21 +171,21 @@ peekCString2 = peek >=> peekCString
   , optionally `Maybe Cursor'
   , `String'
   , alloca- `Cursor' peek*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe session_alter as ^
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe session_create as ^
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 
 #if WIREDTIGER_VERSION_MAJOR>3
@@ -204,7 +196,7 @@ peekCString2 = peek >=> peekCString
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 #endif
 
@@ -212,37 +204,37 @@ peekCString2 = peek >=> peekCString
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_join as ^
   { `Session'
   , `Cursor'
   , `Cursor'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_rebalance as ^
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_rename as ^
   { `Session'
   , `String'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_reset as ^
   { `Session'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_salvage as ^
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_truncate as ^
   { `Session'
@@ -250,70 +242,70 @@ peekCString2 = peek >=> peekCString
   , `Cursor'
   , `Cursor'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_upgrade as ^
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_verify as ^
   { `Session'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_begin_transaction as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_commit_transaction as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_prepare_transaction as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_rollback_transaction as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_timestamp_transaction as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_query_timestamp as ^
   { `Session'
   , `String'
   , alloca- `String' peekCString*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_checkpoint as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_snapshot as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_transaction_pinned_range as ^
   { `Session'
   , `Int'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_transaction_sync as ^
   { `Session'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 --
 -- Connection
@@ -321,22 +313,22 @@ peekCString2 = peek >=> peekCString
 
 {# fun unsafe connection_async_flush as ^
   { `Connection'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_close as ^
   { `Connection'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_debug_info as ^
   { `Connection'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_reconfigure as ^
   { `Connection'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_get_home as ^
   { `Connection'
@@ -349,7 +341,7 @@ peekCString2 = peek >=> peekCString
   , `String'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_is_new as ^
   { `Connection'
@@ -360,70 +352,70 @@ peekCString2 = peek >=> peekCString
   , optionally `Maybe EventHandler'
   , `String'
   , alloca- `Session' peek*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_query_timestamp as ^
   { `Connection'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_set_timestamp as ^
   { `Connection'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_rollback_to_stable as ^
   { `Connection'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_load_extension as ^
   { `Connection'
   , `String'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_data_source as ^
   { `Connection'
   , `String'
   , `DataSource'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_collator as ^
   { `Connection'
   , `String'
   , `Collator'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_compressor as ^
   { `Connection'
   , `String'
   , `Compressor'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_encryptor as ^
   { `Connection'
   , `String'
   , `Encryptor'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_extractor as ^
   { `Connection'
   , `String'
   , `Extractor'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_set_file_system as ^
   { `Connection'
   , `FileSystem'
   , `String'
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 --
 --
@@ -434,23 +426,38 @@ peekCString2 = peek >=> peekCString
   , optionally `Maybe EventHandler'
   , `String'
   , alloca- `Connection' peek*
-  } -> `Int' errorCheck*- #}
+  } -> `CInt' errorCheck*- #}
 
 --
 -- Utilities
 --
 
-newtype WiredTigerException = WiredTigerException String 
-  deriving Show
+{# enum define WiredTigerException
+  { WT_ROLLBACK as WiredTigerExceptionRollback
+  , WT_DUPLICATE_KEY as WiredTigerExceptionDuplicateKey
+  , WT_ERROR as WiredTigerExceptionError
+  , WT_NOTFOUND as WiredTigerExceptionNotFound
+  , WT_PANIC as WiredTigerExceptionPanic
+  , WT_RUN_RECOVERY as WiredTigerExceptionRunRecovery
+  , WT_CACHE_FULL as WiredTigerExceptionCacheFull
+  , WT_PREPARE_CONFLICT as WiredTigerExceptionPrepareConflict
+  , WT_TRY_SALVAGE as WiredTigerExceptionTrySalvage
+  } deriving (Eq, Ord, Show) #}
 
 instance Exception WiredTigerException 
 
+errorCheck :: CInt -> IO ()
 errorCheck res =
   case res of
     0 -> pure ()
-    _ -> throwIO $ WiredTigerException "something didn't work"
+    e | e < 0 -> throwIO $ (toEnum (fromIntegral e) :: WiredTigerException)
+    e | e > 0 -> error "some standard posix error"
 
+optionally :: Maybe (Ptr a) -> Ptr a
 optionally = maybe nullPtr id
 
+peekInt :: Ptr CInt -> IO Int
 peekInt p = fromIntegral <$> peek p
 
+peekCString2 :: Ptr CString -> IO String
+peekCString2 = peek >=> peekCString

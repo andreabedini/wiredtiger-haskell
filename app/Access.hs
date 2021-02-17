@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Exception
 import Control.Monad (void)
 import Control.Monad.Extra (whileM)
 import Foreign.Ptr
@@ -22,22 +23,13 @@ main = do
   
   WT.cursorReset cursor
   
-  WT.cursorNext cursor
-  key <- WT.cursorGetKey1 cursor
-  print key
-  value <- WT.cursorGetValue1 cursor
-  print value
-
-  WT.cursorNext cursor
-  key <- WT.cursorGetKey1 cursor
-  print key
-  value <- WT.cursorGetValue1 cursor
-  print value
-
-  WT.cursorNext cursor
-  key <- WT.cursorGetKey1 cursor
-  print key
-  value <- WT.cursorGetValue1 cursor
-  print value
+  whileM $
+    handle (\WT.WiredTigerExceptionNotFound -> return False) $ do
+      WT.cursorNext cursor
+      key <- WT.cursorGetKey1 cursor
+      print key
+      value <- WT.cursorGetValue1 cursor
+      print value
+      return True
 
   WT.connectionClose connection ""

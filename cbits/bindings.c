@@ -4,18 +4,6 @@
  * Cursor
  */
 
-const char *cursor_uri(WT_CURSOR *cursor) {
-  return cursor->uri;
-}
-
-const char *cursor_key_format(WT_CURSOR *cursor) {
-  return cursor->key_format;
-}
-
-const char *cursor_value_format(WT_CURSOR *cursor) {
-  return cursor->value_format;
-}
-
 int cursor_get_key1(WT_CURSOR *cursor, char **key) {
   return cursor->get_key(cursor, key);
 }
