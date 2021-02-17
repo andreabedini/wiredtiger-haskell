@@ -1,45 +1,37 @@
 cabal-version:      2.4
 name:               wiredtiger-haskell
 version:            0.1.0.0
-
--- A short (one-line) description of the package.
--- synopsis:
-
--- A longer description of the package.
--- description:
-
--- A URL where users can report bugs.
--- bug-reports:
-
--- The license under which the package is released.
--- license:
+homepage:           https://github.com/andreabedini/wiredtiger-haskell
+bug-reports:        https://github.com/andreabedini/wiredtiger-haskell/issues
+license:            BSD-3-Clause
+license-file:       LICENCE
 author:             Andrea Bedini
 maintainer:         andrea@andreabedini.com
-
--- A copyright notice.
--- copyright:
--- category:
+copyright:          Copyright (c) 2021, Andrea Bedini
+category:           Database, FFI
 extra-source-files: CHANGELOG.md
+synopsis:           Haskell bindings to WiredTiger
+description:
+    WiredTiger is an high performance, scalable, production quality, NoSQL,
+    Open Source extensible platform for data management.
+
+    This library provides a Haskell language binding to WiredTiger. It is in very early stage.
+
+
+source-repository head
+  type:     git
+  location: https://github.com/andreabedini/wiredtiger-haskell
+
 
 library
     exposed-modules:     Bindings
-
-    -- Modules included in this library but not exported.
-    -- other-modules:
-
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
     build-depends:       base ^>=4.14.1.0
     pkgconfig-depends:   wiredtiger
     include-dirs:        cbits
-    -- include-dirs:        include
-    -- includes:            bindings.h
-    -- c-sources:           cbits/bindings.c
     build-tool-depends:  c2hs:c2hs
-    -- extra-liraries:     wiredtiger
     hs-source-dirs:      src
     default-language:    Haskell2010
-    ghc-options:         -Wall -ddump-asm -ddump-cmm -ddump-stg -ddump-to-file
+    ghc-options:         -Wall -O
 
 test-suite examples
     type: exitcode-stdio-1.0
@@ -56,4 +48,4 @@ test-suite examples
         extra
 
     default-language: Haskell2010
-    ghc-options:      -Wall -ddump-asm -ddump-cmm -ddump-stg -ddump-to-file
+    ghc-options:      -Wall
