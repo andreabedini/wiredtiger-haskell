@@ -7,6 +7,8 @@ module Bindings where
 
 import Control.Monad
 import Control.Exception
+import Data.Int
+import Data.Word
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -26,6 +28,15 @@ import Foreign.C.Types
 {# pointer *WT_SESSION as Session #}
 
 --
+--
+--
+
+-- getInt8 :: CursorM Int8
+-- getString :: CursorM String
+
+-- cursorGetKey :: Cursor -> CursorM a -> IO a
+
+--
 -- Cursor
 --
 
@@ -38,7 +49,10 @@ cursorKeyFormat = {# get __wt_cursor->key_format #} >=> peekCString
 cursorValueFormat :: Cursor -> IO String
 cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
---get_key1
+{# fun unsafe variadic cursor_get_key[char **] as ^
+  { `Cursor'
+  , alloca- `String' peekCString2*
+  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe cursor_get_key1 as ^
   { `Cursor'

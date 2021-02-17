@@ -4,6 +4,14 @@
  * Cursor
  */
 
+int cursor_get_key(WT_CURSOR *cursor, ...) {
+  va_list arg;
+  va_start(arg, cursor);
+  int res = cursor->get_key(cursor, arg);
+  va_end(arg);
+  return res;
+}
+
 int cursor_get_key1(WT_CURSOR *cursor, char **key) {
   return cursor->get_key(cursor, key);
 }
