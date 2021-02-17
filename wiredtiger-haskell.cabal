@@ -41,8 +41,8 @@ library
     default-language:    Haskell2010
     ghc-options:         -ddump-asm -ddump-cmm -ddump-stg -ddump-to-file
 
-executable wiredtiger-haskell
-    main-is:          Main.hs
+executable access
+    main-is:          Access.hs
 
     -- Modules included in this executable, other than Main.
     -- other-modules:
@@ -51,8 +51,9 @@ executable wiredtiger-haskell
     -- other-extensions:
     build-depends:
         base ^>=4.14.1.0,
-        wiredtiger-haskell
+        wiredtiger-haskell,
+        extra
 
     hs-source-dirs:   app
     default-language: Haskell2010
-    ghc-options:         -ddump-asm -ddump-cmm -ddump-stg -ddump-to-file
+    ghc-options:      -ddump-asm -ddump-cmm -ddump-stg -ddump-to-file
