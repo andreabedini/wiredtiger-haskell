@@ -125,9 +125,13 @@ int session_create(WT_SESSION *session, const char *name, const char *config) {
   return session->create(session, name, config);
 }
 
+#if WIREDTIGER_VERSION_MAJOR>3
+  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR>2)
+  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR==2 && WIREDTIGER_VERSION_MAJOR>=1)
 int session_import(WT_SESSION *session, const char *name, const char *config) {
   return session->import(session, name, config);
 }
+#endif
 
 int session_drop(WT_SESSION *session, const char *name, const char *config) {
   return session->drop(session, name, config);

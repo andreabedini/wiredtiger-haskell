@@ -175,11 +175,17 @@ peekCString2 = peek >=> peekCString
   , `String'
   } -> `Int' #}
 
+#if WIREDTIGER_VERSION_MAJOR>3
+  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR>2)
+  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR==2 && WIREDTIGER_VERSION_MAJOR>=1)
+
 {# fun unsafe session_import as ^
   { `Session'
   , `String'
   , `String'
   } -> `Int' #}
+
+#endif
 
 {# fun unsafe session_drop as ^
   { `Session'
