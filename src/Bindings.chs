@@ -66,39 +66,32 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   , alloca- `Int' peekInt*
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_equals as ^
   { `Cursor'
   , `Cursor'
   , alloca- `Int' peekInt*
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_next as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe cursor_prev as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_reset as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe cursor_search as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_search_near as ^
   { `Cursor'
   , alloca- `Int' peekInt*
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe cursor_insert as ^
   { `Cursor'
@@ -111,32 +104,26 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   { `Cursor'
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_remove as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe cursor_reserve as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_close as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe cursor_reconfigure as ^
   { `Cursor'
   , `String'
   } -> `CInt' errorCheck*- #}
 
-
 {# fun unsafe cursor_cache as ^
   { `Cursor'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe cursor_reopen as ^
   { `Cursor'
@@ -150,15 +137,13 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
 {# fun unsafe session_close as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe session_reconfigure as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe session_strerror as ^
   { `Session'
@@ -169,24 +154,22 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   { `Session'
   , `String'
   , optionally `Maybe Cursor'
-  , `String'
+  , optionalCString* `Maybe String'
   , alloca- `Cursor' peek*
   } -> `CInt' errorCheck*- #}
-
 
 {# fun unsafe session_alter as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 
 {# fun unsafe session_create as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
-
 
 #if WIREDTIGER_VERSION_MAJOR>3
   || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR>2)
@@ -195,7 +178,7 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 {# fun unsafe session_import as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 #endif
@@ -203,27 +186,27 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 {# fun unsafe session_drop as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_join as ^
   { `Session'
   , `Cursor'
   , `Cursor'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_rebalance as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_rename as ^
   { `Session'
   , `String'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_reset as ^
@@ -233,7 +216,7 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 {# fun unsafe session_salvage as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_truncate as ^
@@ -241,60 +224,60 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   , `String'
   , `Cursor'
   , `Cursor'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_upgrade as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_verify as ^
   { `Session'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_begin_transaction as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_commit_transaction as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_prepare_transaction as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_rollback_transaction as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_timestamp_transaction as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_query_timestamp as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   , alloca- `String' peekCString*
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_checkpoint as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_snapshot as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_transaction_pinned_range as ^
@@ -304,7 +287,7 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
 {# fun unsafe session_transaction_sync as ^
   { `Session'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 --
@@ -317,17 +300,17 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
 {# fun unsafe connection_close as ^
   { `Connection'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_debug_info as ^
   { `Connection'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_reconfigure as ^
   { `Connection'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_get_home as ^
@@ -350,71 +333,71 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 {# fun unsafe connection_open_session as ^
   { `Connection'
   , optionally `Maybe EventHandler'
-  , `String'
+  , optionalCString* `Maybe String'
   , alloca- `Session' peek*
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_query_timestamp as ^
   { `Connection'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_set_timestamp as ^
   { `Connection'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_rollback_to_stable as ^
   { `Connection'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_load_extension as ^
   { `Connection'
   , `String'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_data_source as ^
   { `Connection'
   , `String'
   , `DataSource'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_collator as ^
   { `Connection'
   , `String'
   , `Collator'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_compressor as ^
   { `Connection'
   , `String'
   , `Compressor'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_encryptor as ^
   { `Connection'
   , `String'
   , `Encryptor'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_add_extractor as ^
   { `Connection'
   , `String'
   , `Extractor'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_set_file_system as ^
   { `Connection'
   , `FileSystem'
-  , `String'
+  , optionalCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 --
@@ -424,7 +407,7 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 {# fun unsafe wiredtiger_open as open
   { `String'
   , optionally `Maybe EventHandler'
-  , `String'
+  , optionalCString* `Maybe String'
   , alloca- `Connection' peek*
   } -> `CInt' errorCheck*- #}
 
@@ -452,6 +435,9 @@ errorCheck res =
     0 -> pure ()
     e | e < 0 -> throwIO $ (toEnum (fromIntegral e) :: WiredTigerException)
     e | e > 0 -> error "some standard posix error"
+
+optionalCString :: Maybe String -> (CString -> IO a) -> IO a
+optionalCString = maybe ($ nullPtr) withCString
 
 optionally :: Maybe (Ptr a) -> Ptr a
 optionally = maybe nullPtr id

@@ -10,11 +10,11 @@ import Test.Hspec
 access :: Spec
 access =
   describe "access" $
-    it "works" $ do      
-      connection <- WT.open "WT_HOME" Nothing "create"
-      session <- WT.connectionOpenSession connection Nothing ""
-      WT.sessionCreate session "table:access" "key_format=S,value_format=S"
-      cursor <- WT.sessionOpenCursor session "table:access" Nothing ""
+    it "works" $ do
+      connection <- WT.open "WT_HOME" Nothing (Just "create")
+      session <- WT.connectionOpenSession connection Nothing Nothing
+      WT.sessionCreate session "table:access" (Just "key_format=S,value_format=S")
+      cursor <- WT.sessionOpenCursor session "table:access" Nothing Nothing
       
       WT.cursorSetKey1 cursor "key1"
       WT.cursorSetValue1 cursor "value1"
@@ -37,4 +37,4 @@ access =
       c <- readIORef cRef
       c `shouldBe` 1
 
-      WT.connectionClose connection ""
+      WT.connectionClose connection Nothing
