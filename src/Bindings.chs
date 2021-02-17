@@ -5,6 +5,7 @@
 
 module Bindings where
 
+import Control.Monad
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -40,6 +41,19 @@ import Foreign.C.Types
   } -> `String' #}
 
 --get_key1
+
+{# fun unsafe cursor_get_key1 as ^
+  { `Cursor'
+  , alloca- `String' peekCString2*
+  } -> `Int' #}
+
+{# fun unsafe cursor_get_value1 as ^
+  { `Cursor'
+  , alloca- `String' peekCString2*
+  } -> `Int' #}
+
+peekCString2 :: Ptr CString -> IO String
+peekCString2 = peek >=> peekCString
 
 --get_value1
 
