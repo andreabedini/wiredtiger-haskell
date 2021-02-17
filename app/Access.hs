@@ -7,28 +7,37 @@ import qualified Bindings as WT
 
 main :: IO ()
 main = do
-  (res, connection) <- WT.open "WT_HOME" Nothing "create"
-  print res
-  (res, session) <- WT.connectionOpenSession connection Nothing ""
-  print res
-  res <- WT.sessionCreate session "table:access" "key_format=S,value_format=S"
-  print res
-  (res, cursor) <- WT.sessionOpenCursor session "table:access" Nothing ""
-  print res
+  connection <- WT.open "WT_HOME" Nothing "create"
+  session <- WT.connectionOpenSession connection Nothing ""
+  WT.sessionCreate session "table:access" "key_format=S,value_format=S"
+  cursor <- WT.sessionOpenCursor session "table:access" Nothing ""
+  
   WT.cursorSetKey1 cursor "key1"
   WT.cursorSetValue1 cursor "value1"
-  res <- WT.cursorInsert cursor
-  print res
+  WT.cursorInsert cursor
+  
+  WT.cursorSetKey1 cursor "key2"
+  WT.cursorSetValue1 cursor "value2"
+  WT.cursorInsert cursor
+  
   WT.cursorReset cursor
-  whileM $ do
-    res <- WT.cursorNext cursor
-    print res
-    (res, key) <- WT.cursorGetKey1 cursor
-    print res
-    print key
-    (res, key) <- WT.cursorGetValue1 cursor
-    print res
-    print key
-    return $ res /= 0
-  res <- WT.connectionClose connection ""
-  print res
+  
+  WT.cursorNext cursor
+  key <- WT.cursorGetKey1 cursor
+  print key
+  value <- WT.cursorGetValue1 cursor
+  print value
+
+  WT.cursorNext cursor
+  key <- WT.cursorGetKey1 cursor
+  print key
+  value <- WT.cursorGetValue1 cursor
+  print value
+
+  WT.cursorNext cursor
+  key <- WT.cursorGetKey1 cursor
+  print key
+  value <- WT.cursorGetValue1 cursor
+  print value
+
+  WT.connectionClose connection ""
