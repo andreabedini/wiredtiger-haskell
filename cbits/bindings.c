@@ -4,27 +4,19 @@
  * Cursor
  */
 
-int cursor_get_key(WT_CURSOR *cursor, ...) {
-  va_list arg;
-  va_start(arg, cursor);
-  int res = cursor->get_key(cursor, arg);
-  va_end(arg);
-  return res;
-}
-
-int cursor_get_key1(WT_CURSOR *cursor, char **key) {
+int cursor_get_key(WT_CURSOR *cursor, WT_ITEM *key) {
   return cursor->get_key(cursor, key);
 }
 
-int cursor_get_value1(WT_CURSOR *cursor, char **value) {
+int cursor_get_value(WT_CURSOR *cursor, WT_ITEM *value) {
   return cursor->get_value(cursor, value);
 }
 
-void cursor_set_key1(WT_CURSOR *cursor, char *key) {
+void cursor_set_key(WT_CURSOR *cursor, WT_ITEM *key) {
   cursor->set_key(cursor, key);
 }
 
-void cursor_set_value1(WT_CURSOR *cursor, char *value) {
+void cursor_set_value(WT_CURSOR *cursor, WT_ITEM *value) {
   cursor->set_value(cursor, value);
 }
 
@@ -110,7 +102,11 @@ const char* session_strerror(WT_SESSION *session, int error) {
 
 int session_open_cursor(WT_SESSION *session, const char *uri,
     WT_CURSOR *to_dup, const char *config, WT_CURSOR **cursorp) {
-  return session->open_cursor(session, uri, to_dup, config, cursorp);
+  int ret = session->open_cursor(session, uri, to_dup, config, cursorp);
+  if (ret == 0) {
+    (*cursorp)->flags |= WT_CURSTD_RAW;
+  }
+  return ret;
 }
 
 int session_alter(WT_SESSION *session, const char *name, const char *config) {

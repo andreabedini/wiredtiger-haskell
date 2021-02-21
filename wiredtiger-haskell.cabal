@@ -26,6 +26,7 @@ source-repository head
 library
     exposed-modules:     Bindings
     build-depends:       base ^>=4.14.1.0
+                       , bytestring
     pkgconfig-depends:   wiredtiger
     include-dirs:        cbits
     build-tool-depends:  c2hs:c2hs
