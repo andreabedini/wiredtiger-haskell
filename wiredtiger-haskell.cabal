@@ -40,6 +40,7 @@ test-suite examples
     main-is: Test.hs
     other-modules:
         Access
+        CallCenter
     hs-source-dirs: examples
     build-depends:
           base ^>=4.14.1.0
