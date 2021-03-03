@@ -4,15 +4,17 @@
 
 #include <wiredtiger.h>
 
-module Bindings where
+module WiredTiger.Bindings where
 
 import Control.Monad
 import Control.Exception
 import Data.ByteString (ByteString, packCStringLen, useAsCStringLen)
 import Foreign
+import Foreign.C.Error
 import Foreign.C.String
 import Foreign.C.Types
 
+{# context prefix = "wiredtiger" #}
 
 {# pointer *WT_COLLATOR as Collator #}
 {# pointer *WT_COMPRESSOR as Compressor #}
@@ -27,10 +29,7 @@ import Foreign.C.Types
 {# pointer *WT_FILE_SYSTEM as FileSystem #}
 {# pointer *WT_ITEM  as Item #}
 {# pointer *WT_SESSION as Session #}
-
---
---
---
+{# pointer *WT_PACK_STREAM as PackStream #}
 
 --
 -- Cursor
@@ -270,8 +269,8 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
 {# fun unsafe session_query_timestamp as ^
   { `Session'
-  , nullableCString* `Maybe String'
   , alloca- `String' peekCString*
+  , nullableCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe session_checkpoint as ^
@@ -416,6 +415,71 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   } -> `CInt' errorCheck*- #}
 
 --
+-- Streaming interface to packing
+--
+
+{# fun unsafe wiredtiger_pack_start as ^
+  { `Session'
+  , `String'
+  , `Ptr ()'
+  , `Int'
+  , alloca- `PackStream' peek*
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_unpack_start as ^
+  { `Session'
+  , `String'
+  , `Ptr ()'
+  , `Int'
+  , alloca- `PackStream' peek*
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_pack_close as ^
+  { `PackStream'
+  , alloca- `Int' peekInt*
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_pack_item as ^
+  { `PackStream'
+  , withItem* `ByteString'
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_pack_int as ^
+  { `PackStream'
+  , `Int'
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_pack_str as ^
+  { `PackStream'
+  , `String'
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_pack_uint as ^
+  { `PackStream'
+  , fromIntegral `Word'
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_unpack_item as ^
+  { `PackStream'
+  , alloca- `ByteString' peekItem*
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_unpack_int as ^
+  { `PackStream'
+  , alloca- `Int' peekInt*
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_unpack_str as ^
+  { `PackStream'
+  , alloca- `String' peekCString2*
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe wiredtiger_unpack_uint as ^
+  { `PackStream'
+  , alloca- `Word' peekWord*
+  } -> `CInt' errorCheck*- #}
+
+--
 -- Utilities
 --
 
@@ -438,7 +502,7 @@ errorCheck res =
   case res of
     0 -> pure ()
     e | e < 0 -> throwIO $ (toEnum (fromIntegral e) :: WiredTigerException)
-    e | e > 0 -> error "some standard posix error"
+    e | e > 0 -> ioError (errnoToIOError "" (Errno e) Nothing Nothing)
 
 nullableCString :: Maybe String -> (CString -> IO a) -> IO a
 nullableCString = maybe ($ nullPtr) withCString
@@ -446,8 +510,14 @@ nullableCString = maybe ($ nullPtr) withCString
 nullablePtr :: Maybe (Ptr a) -> Ptr a
 nullablePtr = maybe nullPtr id
 
-peekInt :: Ptr CInt -> IO Int
+peekInt :: (Integral a, Storable a) => Ptr a -> IO Int
 peekInt p = fromIntegral <$> peek p
+
+peekWord :: (Integral a, Storable a) => Ptr a -> IO Word
+peekWord p = fromIntegral <$> peek p
+
+peekCString2 :: Ptr CString -> IO String
+peekCString2 = peek >=> peekCString
 
 peekItem :: Item -> IO ByteString
 peekItem item = do

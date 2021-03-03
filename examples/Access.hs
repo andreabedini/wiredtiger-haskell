@@ -4,7 +4,7 @@ module Access where
 import Control.Exception
 import Control.Monad.Extra (whileM)
 import Data.IORef
-import qualified Bindings as WT
+import qualified WiredTiger.Bindings as WT
 import Test.Hspec
 
 

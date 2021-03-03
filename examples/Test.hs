@@ -1,6 +1,6 @@
 import Test.Tasty
 import Test.Tasty.Hspec
-import Access 
+import Access
 
 main :: IO ()
 main = do
