@@ -16,6 +16,8 @@ import Foreign.C.Types
 
 {# context prefix = "wiredtiger" #}
 
+{# pointer *WT_ASYNC_CALLBACK as AsyncCallback #}
+{# pointer *WT_ASYNC_OP as AsyncOp #}
 {# pointer *WT_COLLATOR as Collator #}
 {# pointer *WT_COMPRESSOR as Compressor #}
 {# pointer *WT_CONNECTION as Connection #}
@@ -30,6 +32,15 @@ import Foreign.C.Types
 {# pointer *WT_ITEM  as Item #}
 {# pointer *WT_SESSION as Session #}
 {# pointer *WT_PACK_STREAM as PackStream #}
+
+{# enum define AsyncOpType
+  { WT_AOP_NONE as AsyncOpNone
+  , WT_AOP_COMPACT as AsyncCompact
+  , WT_AOP_INSERT as AsyncInsert
+  , WT_AOP_REMOVE as AsyncRemove
+  , WT_AOP_SEARCH as AsyncSearch
+  , WT_AOP_UPDATE as AsyncUpdate
+  } deriving (Eq, Ord, Show) #}
 
 --
 -- Cursor
@@ -101,7 +112,6 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   { `Cursor'
   } -> `CInt' errorCheck*- #}
 
-
 -- cursor_modify
 
 {# fun unsafe cursor_update as ^
@@ -134,6 +144,17 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   , `Bool'
   } -> `CInt' errorCheck*- #}
 
+--
+-- AsyncOp
+--
+
+{# fun unsafe async_op_get_id as ^
+  { `AsyncOp'
+  } -> `Word' fromIntegral #}
+
+{# fun unsafe async_op_get_type as ^
+  { `AsyncOp'
+  } -> `AsyncOpType' #}
 
 --
 -- Session
@@ -299,6 +320,14 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 
 {# fun unsafe connection_async_flush as ^
   { `Connection'
+  } -> `CInt' errorCheck*- #}
+
+{# fun unsafe connection_async_new_op as ^
+  { `Connection'
+  , `String'
+  , `String'
+  , `AsyncCallback'
+  , alloca- `AsyncOp' peek*
   } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_close as ^
@@ -619,6 +648,18 @@ int cursor_reopen(WT_CURSOR *cursor, bool check_only) {
 }
 
 /*
+ * AsyncOp
+ */
+
+uint64_t async_op_get_id(WT_ASYNC_OP *op) {
+  return op->get_id(op);
+}
+
+WT_ASYNC_OPTYPE async_op_get_type(WT_ASYNC_OP *op) {
+  return op->get_type(op);
+}
+
+/*
  * Session
  */
 
@@ -745,7 +786,10 @@ int connection_async_flush(WT_CONNECTION *connection) {
   return connection->async_flush(connection);
 }
 
-// connection_async_new_op
+int connection_async_new_op(WT_CONNECTION *connection, const char *uri,
+const char *config, WT_ASYNC_CALLBACK *callback, WT_ASYNC_OP **asyncopp) {
+  return connection->async_new_op(connection, uri, config, callback, asyncopp);
+}
 
 int connection_close(WT_CONNECTION *connection, const char *config) {
   return connection->close(connection, config);
