@@ -16,8 +16,6 @@ import Foreign.C.Types
 
 {# context prefix = "wiredtiger" #}
 
-{# pointer *WT_ASYNC_CALLBACK as AsyncCallback #}
-{# pointer *WT_ASYNC_OP as AsyncOp #}
 {# pointer *WT_COLLATOR as Collator #}
 {# pointer *WT_COMPRESSOR as Compressor #}
 {# pointer *WT_CONNECTION as Connection #}
@@ -32,15 +30,6 @@ import Foreign.C.Types
 {# pointer *WT_ITEM  as Item #}
 {# pointer *WT_SESSION as Session #}
 {# pointer *WT_PACK_STREAM as PackStream #}
-
-{# enum define AsyncOpType
-  { WT_AOP_NONE as AsyncOpNone
-  , WT_AOP_COMPACT as AsyncCompact
-  , WT_AOP_INSERT as AsyncInsert
-  , WT_AOP_REMOVE as AsyncRemove
-  , WT_AOP_SEARCH as AsyncSearch
-  , WT_AOP_UPDATE as AsyncUpdate
-  } deriving (Eq, Ord, Show) #}
 
 --
 -- Cursor
@@ -145,18 +134,6 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   } -> `CInt' errorCheck*- #}
 
 --
--- AsyncOp
---
-
-{# fun unsafe async_op_get_id as ^
-  { `AsyncOp'
-  } -> `Word' fromIntegral #}
-
-{# fun unsafe async_op_get_type as ^
-  { `AsyncOp'
-  } -> `AsyncOpType' #}
-
---
 -- Session
 --
 
@@ -195,18 +172,6 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   , nullableCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
-#if WIREDTIGER_VERSION_MAJOR>3
-  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR>2)
-  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR==2 && WIREDTIGER_VERSION_MAJOR>=1)
-
-{# fun unsafe session_import as ^
-  { `Session'
-  , `String'
-  , nullableCString* `Maybe String'
-  } -> `CInt' errorCheck*- #}
-
-#endif
-
 {# fun unsafe session_drop as ^
   { `Session'
   , `String'
@@ -217,12 +182,6 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   { `Session'
   , `Cursor'
   , `Cursor'
-  , nullableCString* `Maybe String'
-  } -> `CInt' errorCheck*- #}
-
-{# fun unsafe session_rebalance as ^
-  { `Session'
-  , `String'
   , nullableCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
@@ -299,11 +258,6 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
   , nullableCString* `Maybe String'
   } -> `CInt' errorCheck*- #}
 
-{# fun unsafe session_snapshot as ^
-  { `Session'
-  , nullableCString* `Maybe String'
-  } -> `CInt' errorCheck*- #}
-
 {# fun unsafe session_transaction_pinned_range as ^
   { `Session'
   , `Int'
@@ -317,18 +271,6 @@ cursorValueFormat = {# get __wt_cursor->value_format #} >=> peekCString
 --
 -- Connection
 --
-
-{# fun unsafe connection_async_flush as ^
-  { `Connection'
-  } -> `CInt' errorCheck*- #}
-
-{# fun unsafe connection_async_new_op as ^
-  { `Connection'
-  , `String'
-  , `String'
-  , `AsyncCallback'
-  , alloca- `AsyncOp' peek*
-  } -> `CInt' errorCheck*- #}
 
 {# fun unsafe connection_close as ^
   { `Connection'
@@ -648,18 +590,6 @@ int cursor_reopen(WT_CURSOR *cursor, bool check_only) {
 }
 
 /*
- * AsyncOp
- */
-
-uint64_t async_op_get_id(WT_ASYNC_OP *op) {
-  return op->get_id(op);
-}
-
-WT_ASYNC_OPTYPE async_op_get_type(WT_ASYNC_OP *op) {
-  return op->get_type(op);
-}
-
-/*
  * Session
  */
 
@@ -692,14 +622,6 @@ int session_create(WT_SESSION *session, const char *name, const char *config) {
   return session->create(session, name, config);
 }
 
-#if WIREDTIGER_VERSION_MAJOR>3
-  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR>2)
-  || (WIREDTIGER_VERSION_MAJOR==3 && WIREDTIGER_VERSION_MAJOR==2 && WIREDTIGER_VERSION_MAJOR>=1)
-int session_import(WT_SESSION *session, const char *name, const char *config) {
-  return session->import(session, name, config);
-}
-#endif
-
 int session_drop(WT_SESSION *session, const char *name, const char *config) {
   return session->drop(session, name, config);
 }
@@ -709,10 +631,6 @@ int session_join(WT_SESSION *session, WT_CURSOR *join_cursor, WT_CURSOR *ref_cur
 }
 
 /* int session_log_flush(WT_SESSION *session, const char *format, ...) */
-
-int session_rebalance(WT_SESSION *session, const char *uri, const char *config) {
-  return session->rebalance(session, uri, config);
-}
 
 int session_rename(WT_SESSION *session, const char *uri, const char *newuri, const char *config) {
   return session->rename(session, uri, newuri, config);
@@ -766,10 +684,6 @@ int session_checkpoint(WT_SESSION *session, const char *config) {
   return session->checkpoint(session, config);
 }
 
-int session_snapshot(WT_SESSION *session, const char *config) {
-  return session->snapshot(session, config);
-}
-
 int session_transaction_pinned_range(WT_SESSION *session, uint64_t *range) {
   return session->transaction_pinned_range(session, range);
 }
@@ -781,15 +695,6 @@ int session_transaction_sync(WT_SESSION *session, const char *config) {
 /*
  * Connection
  */
-
-int connection_async_flush(WT_CONNECTION *connection) {
-  return connection->async_flush(connection);
-}
-
-int connection_async_new_op(WT_CONNECTION *connection, const char *uri,
-const char *config, WT_ASYNC_CALLBACK *callback, WT_ASYNC_OP **asyncopp) {
-  return connection->async_new_op(connection, uri, config, callback, asyncopp);
-}
 
 int connection_close(WT_CONNECTION *connection, const char *config) {
   return connection->close(connection, config);
