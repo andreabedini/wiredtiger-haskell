@@ -59,22 +59,22 @@ calls =
   , Call (WT.QQ 35) (WT.QQ 1) (WT.QQ 2) "reminder" "available"
   ]
 
-withConnection :: String -> Maybe WT.EventHandler -> Maybe String -> (WT.Connection -> IO c) -> IO c
-withConnection a b c = bracket (WT.open a b c) (`WT.connectionClose` Nothing)
+withConnection :: String -> Maybe String -> (WT.Connection -> IO c) -> IO c
+withConnection a b = bracket (WT.open a b) (`WT.connectionClose` Nothing)
 
-withSession :: WT.Connection -> Maybe WT.EventHandler -> Maybe String -> (WT.Session -> IO c) -> IO c
-withSession connection b c = bracket (WT.connectionOpenSession connection b c) (`WT.sessionClose` Nothing)
+withSession :: WT.Connection -> Maybe String -> (WT.Session -> IO c) -> IO c
+withSession connection mConfig = bracket (WT.connectionOpenSession connection mConfig) (`WT.sessionClose` Nothing)
 
-withCursor :: WT.Session -> String -> Maybe WT.Cursor -> Maybe String -> (WT.Cursor -> IO c) -> IO c
-withCursor session a b c = bracket (WT.sessionOpenCursor session a b c) WT.cursorClose
+withCursor :: WT.Session -> String -> Maybe String -> (WT.Cursor -> IO c) -> IO c
+withCursor session uri mConfig = bracket (WT.sessionOpenCursor session uri mConfig) WT.cursorClose
 
 callCenter :: HasCallStack => IO ()
 callCenter = do
   removeDirectoryRecursive "WT_HOME"
   createDirectory "WT_HOME"
 
-  withConnection "WT_HOME" Nothing (Just "create") $ \connection ->
-    withSession connection Nothing Nothing $ \session -> do
+  withConnection "WT_HOME" (Just "create") $ \connection ->
+    withSession connection Nothing $ \session -> do
 
       WT.sessionCreate session "table:customers" $ Just $ mconcat
         [ "key_format=r,value_format=SSS,"
@@ -86,7 +86,7 @@ callCenter = do
       WT.sessionCreate session "colgroup:customers:address" $ Just "columns=(address)"
       WT.sessionCreate session "index:customers:phone" $ Just "columns=(phone)"
 
-      withCursor session "table:customers" Nothing (Just "append") $ \cursor ->
+      withCursor session "table:customers" (Just "append") $ \cursor ->
         forM_ customers $ \customer -> do
             WT.cursorSetValue cursor (encode customer)
             WT.cursorInsert cursor
@@ -98,7 +98,7 @@ callCenter = do
 
       WT.sessionCreate session "index:calls:cust_date" $ Just "columns=(cust_id,call_date)"
 
-      withCursor session "table:calls" Nothing (Just "append") $ \cursor ->
+      withCursor session "table:calls" (Just "append") $ \cursor ->
         forM_ calls $ \call -> do
           WT.cursorSetValue cursor (encode call)
           WT.cursorInsert cursor

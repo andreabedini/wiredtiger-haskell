@@ -12,10 +12,14 @@ access :: Spec
 access =
   describe "access" $
     it "works" $ do
-      connection <- WT.open "WT_HOME" Nothing (Just "in_memory")
-      session <- WT.connectionOpenSession connection Nothing Nothing
+      connection <- WT.open "WT_HOME" (Just "in_memory")
+      print connection
+
+      session <- WT.connectionOpenSession connection Nothing
+      print session
+
       WT.sessionCreate session "table:access" (Just "key_format=S,value_format=S")
-      cursor <- WT.sessionOpenCursor session "table:access" Nothing Nothing
+      cursor <- WT.sessionOpenCursor session "table:access" Nothing
 
       WT.cursorSetKey cursor "key1"
       WT.cursorSetValue cursor "value1"
