@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Control.Exception
-import qualified WiredTiger.Bindings as WT
+import qualified WiredTiger.Raw as WT
 import qualified Data.ByteString.Char8 as B
 import Data.List (intercalate)
 

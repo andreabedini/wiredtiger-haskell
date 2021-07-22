@@ -5,7 +5,7 @@ module CallCenter where
 import Control.Exception
 import Data.Serialize
 
-import qualified WiredTiger.Bindings as WT
+import qualified WiredTiger.Raw as WT
 import qualified WiredTiger.Schema as WT
 import Control.Monad (forM_)
 import Data.List (intercalate)

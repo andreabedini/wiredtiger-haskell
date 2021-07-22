@@ -24,11 +24,11 @@ source-repository head
 
 
 library
-    exposed-modules:     WiredTiger.Bindings
-                       , WiredTiger.IntPack
+    exposed-modules:     WiredTiger.Raw
                        , WiredTiger.Schema
-                       , WiredTiger.Types
+    other-modules:       WiredTiger.IntPack
                        , WiredTiger.Context
+                       , WiredTiger.Types
     build-depends:       base ^>=4.14.1.0
                        , bytestring ^>= 0.11.1.0
                        , cereal
