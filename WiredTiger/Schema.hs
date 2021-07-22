@@ -1,6 +1,10 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE InstanceSigs #-}
-module WiredTiger.Schema where
+module WiredTiger.Schema (
+  module WiredTiger.Schema,
+  getInt, putInt
+  )
+where
 
 import Data.Int
 import Data.Serialize
@@ -92,8 +96,14 @@ newtype SS = SS String
   deriving IsString via String
 
 instance Serialize SS where
-  put (SS str) = putLazyByteString $ B.toLazyByteString $ B.stringUtf8 str <> B.word8 0
-  get = SS <$> getNullTerminatedString
+  get = SS <$> getString
+  put (SS str) = putString str
+
+putString :: String -> Put
+putString str = putLazyByteString $ B.toLazyByteString $ B.stringUtf8 str <> B.word8 0
+
+getString :: Get String
+getString = getNullTerminatedString
 
 getNullTerminatedLazyByteString :: Get BL.ByteString
 getNullTerminatedLazyByteString = go mempty

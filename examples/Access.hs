@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Control.Exception
-import Control.Monad.Extra (whileM)
-import Data.IORef
 import qualified WiredTiger.Bindings as WT
 import qualified Data.ByteString.Char8 as B
+import Data.List (intercalate)
 
 
 main :: IO ()
@@ -11,7 +10,7 @@ main = do
   connection <- WT.open "WT_HOME" (Just "in_memory")
   session <- WT.connectionOpenSession connection Nothing
 
-  WT.sessionCreate session "table:access" (Just "key_format=S,value_format=S")
+  WT.sessionCreate session "table:access" $ Just $ intercalate "," ["key_format=S", "value_format=S"]
   cursor <- WT.sessionOpenCursor session "table:access" Nothing
 
   WT.cursorSetKey cursor "key1"
@@ -20,18 +19,15 @@ main = do
 
   WT.cursorReset cursor
 
-  cRef <- newIORef (0 :: Int)
-
   whileM $
     handle (\WT.WiredTigerExceptionNotFound -> return False) $ do
       WT.cursorNext cursor
       key <- WT.cursorGetKey cursor
       value <- WT.cursorGetValue cursor
-      B.putStrLn $ "key: " <> key <> " value: " <> value
-      modifyIORef cRef (+1)
+      B.putStrLn $ "Got record: " <> key <> " : " <> value
       return True
 
-  c <- readIORef cRef
-  print c
-
   WT.connectionClose connection Nothing
+
+whileM :: IO Bool -> IO ()
+whileM m = m >>= \r -> if r then whileM m else pure ()

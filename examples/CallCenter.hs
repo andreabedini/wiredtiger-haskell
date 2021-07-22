@@ -8,21 +8,22 @@ import Data.Serialize
 import qualified WiredTiger.Bindings as WT
 import qualified WiredTiger.Schema as WT
 import Control.Monad (forM_)
+import Data.List (intercalate)
 
 data Customer = Customer
-  { customerName :: WT.SS
-  , customerAddress :: WT.SS
-  , customerPhone :: WT.SS
+  { customerName :: String
+  , customerAddress :: String
+  , customerPhone :: String
   } deriving Show
 
 instance Serialize Customer where
   put Customer { customerName, customerAddress, customerPhone }
     = do
-        put customerName
-        put customerAddress
-        put customerPhone
+        WT.putString customerName
+        WT.putString customerAddress
+        WT.putString customerPhone
 
-  get = Customer <$> get <*> get <*> get
+  get = Customer <$> WT.getString <*> WT.getString <*> WT.getString
 
 customers :: [Customer]
 customers =
@@ -31,30 +32,35 @@ customers =
   ]
 
 data Call = Call
-  { callDate :: WT.QQ
-  , callCustomerId :: WT.QQ
-  , callEmployerId :: WT.QQ
-  , callType :: WT.SS
-  , callNotes :: WT.SS
+  { callDate :: Int
+  , callCustomerId :: Int
+  , callEmployerId :: Int
+  , callType :: String
+  , callNotes :: String
   } deriving Show
 
 instance Serialize Call where
   put Call { callDate, callCustomerId, callEmployerId, callType, callNotes }
     = do
-        put callDate
-        put callCustomerId
-        put callEmployerId
-        put callType
-        put callNotes
+        WT.putInt callDate
+        WT.putInt callCustomerId
+        WT.putInt callEmployerId
+        WT.putString callType
+        WT.putString callNotes
 
-  get = Call <$> get <*> get <*> get <*> get <*> get
+  get = Call
+    <$> (fromIntegral <$> WT.getInt)
+    <*> (fromIntegral <$> WT.getInt)
+    <*> (fromIntegral <$> WT.getInt)
+    <*> WT.getString
+    <*> WT.getString
 
 calls :: [Call]
 calls =
-  [ Call (WT.QQ 32) (WT.QQ 1) (WT.QQ 2) "billing" "unavailable"
-  , Call (WT.QQ 33) (WT.QQ 1) (WT.QQ 2) "billing" "available"
-  , Call (WT.QQ 34) (WT.QQ 1) (WT.QQ 2) "reminder" "unavailable"
-  , Call (WT.QQ 35) (WT.QQ 1) (WT.QQ 2) "reminder" "available"
+  [ Call 32 1 2 "billing" "unavailable"
+  , Call 33 1 2 "billing" "available"
+  , Call 34 1 2 "reminder" "unavailable"
+  , Call 35 1 2 "reminder" "available"
   ]
 
 withConnection :: String -> Maybe String -> (WT.Connection -> IO c) -> IO c
@@ -71,9 +77,10 @@ main = do
   withConnection "WT_HOME" (Just "in_memory") $ \connection ->
     withSession connection Nothing $ \session -> do
 
-      WT.sessionCreate session "table:customers" $ Just $ mconcat
-        [ "key_format=r,value_format=SSS,"
-        , "columns=(id,name,address,phone),"
+      WT.sessionCreate session "table:customers" $ Just $ intercalate ","
+        [ "key_format=r"
+        , "value_format=SSS"
+        , "columns=(id,name,address,phone)"
         , "colgroups=(main,address)"
         ]
 
@@ -86,8 +93,9 @@ main = do
             WT.cursorSetValue cursor (encode customer)
             WT.cursorInsert cursor
 
-      WT.sessionCreate session "table:calls" $ Just $ mconcat
-        [ "key_format=r,value_format=qrrSS,"
+      WT.sessionCreate session "table:calls" $ Just $ intercalate ","
+        [ "key_format=r"
+        , "value_format=qrrSS"
         , "columns=(id,call_date,cust_id,emp_id,call_type,notes)"
         ]
 
