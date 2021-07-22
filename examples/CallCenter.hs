@@ -4,12 +4,10 @@ module CallCenter where
 
 import Control.Exception
 import Data.Serialize
-import System.Directory
 
 import qualified WiredTiger.Bindings as WT
 import qualified WiredTiger.Schema as WT
 import Control.Monad (forM_)
-import GHC.Stack (HasCallStack)
 
 data Customer = Customer
   { customerName :: WT.SS
@@ -68,12 +66,9 @@ withSession connection mConfig = bracket (WT.connectionOpenSession connection mC
 withCursor :: WT.Session -> String -> Maybe String -> (WT.Cursor -> IO c) -> IO c
 withCursor session uri mConfig = bracket (WT.sessionOpenCursor session uri mConfig) WT.cursorClose
 
-callCenter :: HasCallStack => IO ()
-callCenter = do
-  removeDirectoryRecursive "WT_HOME"
-  createDirectory "WT_HOME"
-
-  withConnection "WT_HOME" (Just "create") $ \connection ->
+main :: IO ()
+main = do
+  withConnection "WT_HOME" (Just "in_memory") $ \connection ->
     withSession connection Nothing $ \session -> do
 
       WT.sessionCreate session "table:customers" $ Just $ mconcat
