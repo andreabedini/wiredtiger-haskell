@@ -249,7 +249,7 @@ cursorGetKey (Cursor cPtr) =
              WT_ITEM item;
              int ret = $(WT_CURSOR* cPtr)->get_key($(WT_CURSOR* cPtr), &item);
              if (ret == 0) {
-               *$(char** keyPtrPtr) = item.data;
+               *$(const char** keyPtrPtr) = item.data;
                *$(int* keyLenPtr) = item.size;
              }
              return ret;
@@ -269,7 +269,7 @@ cursorGetValue (Cursor cPtr) =
              WT_ITEM item;
              int ret = $(WT_CURSOR* cPtr)->get_value($(WT_CURSOR* cPtr), &item);
              if (ret == 0) {
-               *$(char** keyPtrPtr) = item.data;
+               *$(const char** keyPtrPtr) = item.data;
                *$(int* keyLenPtr) = item.size;
              }
              return ret;

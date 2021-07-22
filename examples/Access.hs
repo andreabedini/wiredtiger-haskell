@@ -13,10 +13,7 @@ access =
   describe "access" $
     it "works" $ do
       connection <- WT.open "WT_HOME" (Just "in_memory")
-      print connection
-
       session <- WT.connectionOpenSession connection Nothing
-      print session
 
       WT.sessionCreate session "table:access" (Just "key_format=S,value_format=S")
       cursor <- WT.sessionOpenCursor session "table:access" Nothing
