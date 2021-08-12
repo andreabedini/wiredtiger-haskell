@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module WiredTiger.Raw
   ( open,
@@ -60,6 +61,7 @@ import Foreign.C.Types
 import qualified Language.C.Inline as C
 import WiredTiger.Raw.Context
 import WiredTiger.Raw.Types
+import Data.IORef (newIORef, writeIORef)
 
 C.context (C.baseCtx <> C.bsCtx <> wiredtigerCtx)
 C.include "wiredtiger.h"
@@ -116,51 +118,51 @@ open :: String -> Maybe Config -> IO Connection
 open s mConfig =
   withCString s $ \cs ->
     withNullableCString mConfig $ \config ->
-      alloca $ \cPtr -> do
+      alloca $ \_cursorPtr -> do
         withErrorCheck
           [C.exp|
             int {
-              wiredtiger_open($(const char* cs), NULL, $(const char* config), $(WT_CONNECTION** cPtr))
+              wiredtiger_open($(const char* cs), NULL, $(const char* config), $(WT_CONNECTION** _cursorPtr))
             }
           |]
-        Connection <$> peek cPtr
+        Connection <$> peek _cursorPtr
 
 connectionClose :: Connection -> Maybe Config -> IO ()
-connectionClose (Connection cPtr) mConfig =
+connectionClose (Connection _cursorPtr) mConfig =
   withNullableCString mConfig $ \config ->
     withErrorCheck
-      [C.exp| int { $(WT_CONNECTION* cPtr)->close($(WT_CONNECTION* cPtr), $(char* config)) } |]
+      [C.exp| int { $(WT_CONNECTION* _cursorPtr)->close($(WT_CONNECTION* _cursorPtr), $(char* config)) } |]
 
 connectionDebugInfo :: Connection -> Maybe Config -> IO ()
-connectionDebugInfo (Connection cPtr) mConfig =
+connectionDebugInfo (Connection _cursorPtr) mConfig =
   withNullableCString mConfig $ \config ->
     withErrorCheck
-      [C.exp| int { $(WT_CONNECTION* cPtr)->debug_info($(WT_CONNECTION* cPtr), $(char* config)) } |]
+      [C.exp| int { $(WT_CONNECTION* _cursorPtr)->debug_info($(WT_CONNECTION* _cursorPtr), $(char* config)) } |]
 
 connectionReconfigure :: Connection -> Maybe Config -> IO ()
-connectionReconfigure (Connection cPtr) mConfig =
+connectionReconfigure (Connection _cursorPtr) mConfig =
   withNullableCString mConfig $ \config ->
     withErrorCheck
-      [C.exp| int { $(WT_CONNECTION* cPtr)->reconfigure($(WT_CONNECTION *cPtr), $(char* config)) } |]
+      [C.exp| int { $(WT_CONNECTION* _cursorPtr)->reconfigure($(WT_CONNECTION *_cursorPtr), $(char* config)) } |]
 
 connectionGetHome :: Connection -> IO String
-connectionGetHome (Connection cPtr) =
+connectionGetHome (Connection _cursorPtr) =
   peekCString
-    =<< [C.exp| const char* { $(WT_CONNECTION* cPtr)->get_home($(WT_CONNECTION* cPtr)) } |]
+    =<< [C.exp| const char* { $(WT_CONNECTION* _cursorPtr)->get_home($(WT_CONNECTION* _cursorPtr)) } |]
 
 connectionIsNew :: Connection -> IO Bool
-connectionIsNew (Connection cPtr) =
+connectionIsNew (Connection _cursorPtr) =
   toBool
-    <$> [C.exp| bool { $(WT_CONNECTION* cPtr)->is_new($(WT_CONNECTION* cPtr)) } |]
+    <$> [C.exp| bool { $(WT_CONNECTION* _cursorPtr)->is_new($(WT_CONNECTION* _cursorPtr)) } |]
 
 connectionOpenSession :: Connection -> Maybe Config -> IO Session
-connectionOpenSession (Connection cPtr) mConfig =
+connectionOpenSession (Connection _cursorPtr) mConfig =
   withNullableCString mConfig $ \config ->
     alloca $ \sPtr -> do
       withErrorCheck
         [C.exp|
           int {
-            $(WT_CONNECTION* cPtr)->open_session($(WT_CONNECTION* cPtr), NULL, $(char* config), $(WT_SESSION** sPtr))
+            $(WT_CONNECTION* _cursorPtr)->open_session($(WT_CONNECTION* _cursorPtr), NULL, $(char* config), $(WT_SESSION** sPtr))
           }
         |]
       Session <$> peek sPtr
@@ -181,18 +183,18 @@ sessionOpenCursor :: Session -> Uri -> Maybe Config -> IO Cursor
 sessionOpenCursor (Session sPtr) uri mConfig =
   withCString uri $ \cUri ->
     withNullableCString mConfig $ \config ->
-      alloca $ \cPtr -> do
+      alloca $ \_cursorPtr -> do
         withErrorCheck
           [C.block|
             int {
-              int ret = $(WT_SESSION* sPtr)->open_cursor($(WT_SESSION* sPtr), $(char* cUri), NULL, $(char* config), $(WT_CURSOR** cPtr));
+              int ret = $(WT_SESSION* sPtr)->open_cursor($(WT_SESSION* sPtr), $(char* cUri), NULL, $(char* config), $(WT_CURSOR** _cursorPtr));
               if (ret == 0) {
-                (*$(WT_CURSOR **cPtr))->flags |= WT_CURSTD_RAW;
+                (*$(WT_CURSOR **_cursorPtr))->flags |= WT_CURSTD_RAW;
               }
               return ret;
             }
           |]
-        Cursor <$> peek cPtr
+        Cursor <$> peek _cursorPtr <*> newIORef Nothing <*> newIORef Nothing
 
 sessionAlter :: Session -> String -> Maybe Config -> IO ()
 sessionAlter (Session sPtr) name mConfig =
@@ -267,26 +269,26 @@ sessionRollbackTransaction (Session sPtr) mConfig =
       [C.exp| int { $(WT_SESSION* sPtr)->rollback_transaction($(WT_SESSION* sPtr), $(char* config)) } |]
 
 cursorUri :: Cursor -> IO String
-cursorUri (Cursor cPtr) =
-  [C.exp| const char* { $(WT_CURSOR* cPtr)->uri } |] >>= peekCString
+cursorUri Cursor{_cursorPtr} =
+  [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->uri } |] >>= peekCString
 
 cursorKeyFormat :: Cursor -> IO String
-cursorKeyFormat (Cursor cPtr) =
-  [C.exp| const char* { $(WT_CURSOR* cPtr)->key_format } |] >>= peekCString
+cursorKeyFormat Cursor{_cursorPtr} =
+  [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->key_format } |] >>= peekCString
 
 cursorValueFormat :: Cursor -> IO String
-cursorValueFormat (Cursor cPtr) =
-  [C.exp| const char* { $(WT_CURSOR* cPtr)->value_format } |] >>= peekCString
+cursorValueFormat Cursor{_cursorPtr} =
+  [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->value_format } |] >>= peekCString
 
 cursorGetKey :: Cursor -> IO ByteString
-cursorGetKey (Cursor cPtr) =
+cursorGetKey Cursor{_cursorPtr} =
   alloca $ \keyPtrPtr ->
     alloca $ \keyLenPtr -> do
       withErrorCheck
         [C.block|
            int {
              WT_ITEM item;
-             int ret = $(WT_CURSOR* cPtr)->get_key($(WT_CURSOR* cPtr), &item);
+             int ret = $(WT_CURSOR* _cursorPtr)->get_key($(WT_CURSOR* _cursorPtr), &item);
              if (ret == 0) {
                *$(const char** keyPtrPtr) = item.data;
                *$(int* keyLenPtr) = item.size;
@@ -299,14 +301,14 @@ cursorGetKey (Cursor cPtr) =
       packCStringLen (keyPtr, fromIntegral keyLen)
 
 cursorGetValue :: Cursor -> IO ByteString
-cursorGetValue (Cursor cPtr) =
+cursorGetValue Cursor{_cursorPtr} =
   alloca $ \keyPtrPtr ->
     alloca $ \keyLenPtr -> do
       withErrorCheck
         [C.block|
            int {
              WT_ITEM item;
-             int ret = $(WT_CURSOR* cPtr)->get_value($(WT_CURSOR* cPtr), &item);
+             int ret = $(WT_CURSOR* _cursorPtr)->get_value($(WT_CURSOR* _cursorPtr), &item);
              if (ret == 0) {
                *$(const char** keyPtrPtr) = item.data;
                *$(int* keyLenPtr) = item.size;
@@ -319,63 +321,65 @@ cursorGetValue (Cursor cPtr) =
       packCStringLen (keyPtr, fromIntegral keyLen)
 
 cursorSetKey :: Cursor -> ByteString -> IO ()
-cursorSetKey (Cursor cPtr) key =
+cursorSetKey Cursor{_cursorPtr, _cursorKey} key = do
+  writeIORef _cursorKey (Just key)
   [C.block|
     void {
       WT_ITEM item;
       item.data = $bs-ptr:key;
       item.size = $bs-len:key;
-      $(WT_CURSOR* cPtr)->set_key($(WT_CURSOR* cPtr), &item);
+      $(WT_CURSOR* _cursorPtr)->set_key($(WT_CURSOR* _cursorPtr), &item);
     }
   |]
 
 cursorSetValue :: Cursor -> ByteString -> IO ()
-cursorSetValue (Cursor cPtr) key =
+cursorSetValue Cursor{_cursorPtr, _cursorValue} value = do
+  writeIORef _cursorValue (Just value)
   [C.block|
     void {
       WT_ITEM item;
-      item.data = $bs-ptr:key;
-      item.size = $bs-len:key;
-      $(WT_CURSOR* cPtr)->set_value($(WT_CURSOR* cPtr), &item);
+      item.data = $bs-ptr:value;
+      item.size = $bs-len:value;
+      $(WT_CURSOR* _cursorPtr)->set_value($(WT_CURSOR* _cursorPtr), &item);
     }
   |]
 
 cursorNext :: Cursor -> IO ()
-cursorNext (Cursor cPtr) =
+cursorNext Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->next($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->next($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorPrev :: Cursor -> IO ()
-cursorPrev (Cursor cPtr) =
+cursorPrev Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->prev($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->prev($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorReset :: Cursor -> IO ()
-cursorReset (Cursor cPtr) =
+cursorReset Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->reset($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->reset($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorSearch :: Cursor -> IO ()
-cursorSearch (Cursor cPtr) =
+cursorSearch Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->search($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->search($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorInsert :: Cursor -> IO ()
-cursorInsert (Cursor cPtr) =
+cursorInsert Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->insert($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->insert($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorUpdate :: Cursor -> IO ()
-cursorUpdate (Cursor cPtr) =
+cursorUpdate Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->update($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->update($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorRemove :: Cursor -> IO ()
-cursorRemove (Cursor cPtr) =
+cursorRemove Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->remove($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->remove($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorClose :: Cursor -> IO ()
-cursorClose (Cursor cPtr) =
+cursorClose Cursor{_cursorPtr} =
   withErrorCheck
-    [C.exp| int { $(WT_CURSOR* cPtr)->close($(WT_CURSOR* cPtr)) } |]
+    [C.exp| int { $(WT_CURSOR* _cursorPtr)->close($(WT_CURSOR* _cursorPtr)) } |]
