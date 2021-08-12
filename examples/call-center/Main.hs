@@ -1,7 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-module CallCenter where
-
 import Control.Exception
 import Data.Serialize
 
