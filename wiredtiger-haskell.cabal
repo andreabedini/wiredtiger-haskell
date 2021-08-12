@@ -34,7 +34,7 @@ library
                        , cereal
                        , containers
                        , inline-c
-    pkgconfig-depends:   wiredtiger>=10.0.0
+    pkgconfig-depends:   wiredtiger
     default-language:    Haskell2010
     ghc-options:         -Wall -O
     cc-options:          -Wall
