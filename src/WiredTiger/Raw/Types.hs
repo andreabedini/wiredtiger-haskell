@@ -1,4 +1,4 @@
-module WiredTiger.Types where
+module WiredTiger.Raw.Types where
 
 import Foreign (Ptr)
 

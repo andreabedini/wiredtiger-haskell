@@ -1,5 +1,7 @@
 # WiredTiger Haskell binding (unofficial)
 
+This library is in very early stages.
+
 ## Why
 
 There are not many key-value store libraries available for Haskell. This is
@@ -36,6 +38,4 @@ Any pointers returned by WT_CURSOR::get_key or WT_CURSOR::get_value are only val
 ```
 
 What should I do instead?
-
-Thanks
 

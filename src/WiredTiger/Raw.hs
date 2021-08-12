@@ -58,8 +58,8 @@ import Foreign.C.Error
 import Foreign.C.String
 import Foreign.C.Types
 import qualified Language.C.Inline as C
-import WiredTiger.Context
-import WiredTiger.Types
+import WiredTiger.Raw.Context
+import WiredTiger.Raw.Types
 
 C.context (C.baseCtx <> C.bsCtx <> wiredtigerCtx)
 C.include "wiredtiger.h"

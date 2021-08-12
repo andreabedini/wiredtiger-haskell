@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
-module WiredTiger.Context where
+module WiredTiger.Raw.Context where
 
 import Language.C.Inline.Context
 import qualified Data.Map.Strict as Map
 import Language.C.Types
-import WiredTiger.Types
+import WiredTiger.Raw.Types
 
 wiredtigerCtx :: Context
 wiredtigerCtx = mempty {
