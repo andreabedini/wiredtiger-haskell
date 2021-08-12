@@ -1,10 +1,10 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE NamedFieldPuns #-}
 
 module WiredTiger.Raw
   ( open,
-    WiredTigerException(..),
+    WiredTigerException (..),
 
     -- * Connection
     Connection,
@@ -54,6 +54,7 @@ where
 
 import Control.Exception (Exception, throwIO)
 import Data.ByteString
+import Data.IORef (newIORef, writeIORef)
 import Foreign
 import Foreign.C.Error
 import Foreign.C.String
@@ -61,7 +62,6 @@ import Foreign.C.Types
 import qualified Language.C.Inline as C
 import WiredTiger.Raw.Context
 import WiredTiger.Raw.Types
-import Data.IORef (newIORef, writeIORef)
 
 C.context (C.baseCtx <> C.bsCtx <> wiredtigerCtx)
 C.include "wiredtiger.h"
@@ -269,19 +269,19 @@ sessionRollbackTransaction (Session sPtr) mConfig =
       [C.exp| int { $(WT_SESSION* sPtr)->rollback_transaction($(WT_SESSION* sPtr), $(char* config)) } |]
 
 cursorUri :: Cursor -> IO String
-cursorUri Cursor{_cursorPtr} =
+cursorUri Cursor {_cursorPtr} =
   [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->uri } |] >>= peekCString
 
 cursorKeyFormat :: Cursor -> IO String
-cursorKeyFormat Cursor{_cursorPtr} =
+cursorKeyFormat Cursor {_cursorPtr} =
   [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->key_format } |] >>= peekCString
 
 cursorValueFormat :: Cursor -> IO String
-cursorValueFormat Cursor{_cursorPtr} =
+cursorValueFormat Cursor {_cursorPtr} =
   [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->value_format } |] >>= peekCString
 
 cursorGetKey :: Cursor -> IO ByteString
-cursorGetKey Cursor{_cursorPtr} =
+cursorGetKey Cursor {_cursorPtr} =
   alloca $ \keyPtrPtr ->
     alloca $ \keyLenPtr -> do
       withErrorCheck
@@ -301,7 +301,7 @@ cursorGetKey Cursor{_cursorPtr} =
       packCStringLen (keyPtr, fromIntegral keyLen)
 
 cursorGetValue :: Cursor -> IO ByteString
-cursorGetValue Cursor{_cursorPtr} =
+cursorGetValue Cursor {_cursorPtr} =
   alloca $ \keyPtrPtr ->
     alloca $ \keyLenPtr -> do
       withErrorCheck
@@ -321,7 +321,7 @@ cursorGetValue Cursor{_cursorPtr} =
       packCStringLen (keyPtr, fromIntegral keyLen)
 
 cursorSetKey :: Cursor -> ByteString -> IO ()
-cursorSetKey Cursor{_cursorPtr, _cursorKey} key = do
+cursorSetKey Cursor {_cursorPtr, _cursorKey} key = do
   writeIORef _cursorKey (Just key)
   [C.block|
     void {
@@ -333,7 +333,7 @@ cursorSetKey Cursor{_cursorPtr, _cursorKey} key = do
   |]
 
 cursorSetValue :: Cursor -> ByteString -> IO ()
-cursorSetValue Cursor{_cursorPtr, _cursorValue} value = do
+cursorSetValue Cursor {_cursorPtr, _cursorValue} value = do
   writeIORef _cursorValue (Just value)
   [C.block|
     void {
@@ -345,41 +345,41 @@ cursorSetValue Cursor{_cursorPtr, _cursorValue} value = do
   |]
 
 cursorNext :: Cursor -> IO ()
-cursorNext Cursor{_cursorPtr} =
+cursorNext Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->next($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorPrev :: Cursor -> IO ()
-cursorPrev Cursor{_cursorPtr} =
+cursorPrev Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->prev($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorReset :: Cursor -> IO ()
-cursorReset Cursor{_cursorPtr} =
+cursorReset Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->reset($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorSearch :: Cursor -> IO ()
-cursorSearch Cursor{_cursorPtr} =
+cursorSearch Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->search($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorInsert :: Cursor -> IO ()
-cursorInsert Cursor{_cursorPtr} =
+cursorInsert Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->insert($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorUpdate :: Cursor -> IO ()
-cursorUpdate Cursor{_cursorPtr} =
+cursorUpdate Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->update($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorRemove :: Cursor -> IO ()
-cursorRemove Cursor{_cursorPtr} =
+cursorRemove Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->remove($(WT_CURSOR* _cursorPtr)) } |]
 
 cursorClose :: Cursor -> IO ()
-cursorClose Cursor{_cursorPtr} =
+cursorClose Cursor {_cursorPtr} =
   withErrorCheck
     [C.exp| int { $(WT_CURSOR* _cursorPtr)->close($(WT_CURSOR* _cursorPtr)) } |]

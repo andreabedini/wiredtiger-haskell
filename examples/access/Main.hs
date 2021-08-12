@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 import Control.Exception
-import qualified WiredTiger.Raw as WT
 import qualified Data.ByteString.Char8 as B
 import Data.List (intercalate)
-
+import qualified WiredTiger.Raw as WT
 
 main :: IO ()
 main = do

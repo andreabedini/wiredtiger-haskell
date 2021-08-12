@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import qualified WiredTiger.Bindings as WT
 import Control.Concurrent (threadDelay)
-import System.Mem
 import qualified Data.ByteString.Char8 as C
 import Data.Char (toUpper)
-
+import System.Mem
+import qualified WiredTiger.Bindings as WT
 
 main :: IO ()
 main = do
