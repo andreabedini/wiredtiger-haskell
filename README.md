@@ -1,4 +1,9 @@
-# WiredTiger (unofficial Haskell bindings)
+# WiredTiger Haskell binding (unofficial)
+
+## Why
+
+There are not many key-value store libraries available for Haskell. This is
+an attempt to make one. Also, for learning.
 
 ### Note
 
