@@ -1,6 +1,11 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module WiredTiger.IntPack where
+module WiredTiger.IntPack (
+  getInt,
+  getWord,
+  putInt,
+  putWord
+) where
 
 import Control.Monad
 import Data.Bits
