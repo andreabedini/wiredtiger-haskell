@@ -2,8 +2,21 @@
 
 ### Note
 
-It looks like what I implemented is not going to work.
+What I implemented is not going to work. I am grabbing a pointer from a
+bytestring and giving it to the C side to hold on to.
 
+```haskell
+cursorSetKey :: Cursor -> ByteString -> IO ()
+cursorSetKey (Cursor cPtr) key =
+  [C.block|
+    void {
+      WT_ITEM item;
+      item.data = $bs-ptr:key;
+      item.size = $bs-len:key;
+      $(WT_CURSOR* cPtr)->set_key($(WT_CURSOR* cPtr), &item);
+    }
+  |]
+```
 
 From the [docs](http://source.wiredtiger.com/3.2.1/cursor_ops.html#cursor_memory_scoping).
 
@@ -16,3 +29,8 @@ If a cursor operation fails (for example, due to a WT_ROLLBACK error), it may be
 
 Any pointers returned by WT_CURSOR::get_key or WT_CURSOR::get_value are only valid until a subsequent cursor call that successfully positions the cursor, modifies the underlying data, or the cursor is reset or closed. These pointers may reference private WiredTiger data structures that may not be modified or freed by the application. If a longer scope is required, the application must make a copy of the memory before the cursor is re-used, closed or reset.
 ```
+
+What should I do instead?
+
+Thanks
+
