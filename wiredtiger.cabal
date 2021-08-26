@@ -25,12 +25,12 @@ library
     exposed-modules:
         WiredTiger.Raw
         WiredTiger.Binary
-        WiredTiger.IntPack
 
     cc-options:        -Wall
     pkgconfig-depends: wiredtiger -any
     hs-source-dirs:    src
     other-modules:
+        WiredTiger.IntPack
         WiredTiger.Raw.Context
         WiredTiger.Raw.Types
 
