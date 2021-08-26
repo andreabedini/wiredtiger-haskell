@@ -11,8 +11,8 @@ where
 
 import Control.Monad
 import Data.Bits
-import Data.Serialize
-import Data.Word
+import Data.Binary
+import Data.Binary.Get (lookAhead)
 
 negMultiMarker, neg2ByteMarker, neg1ByteMarker, pos1ByteMarker, pos2ByteMarker, posMultiMarker :: Word8
 negMultiMarker = 0x10

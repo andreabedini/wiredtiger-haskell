@@ -3,10 +3,11 @@
 
 import Control.Exception
 import Control.Monad (forM_)
+import Data.ByteString.Lazy (toStrict)
 import Data.List (intercalate)
-import Data.Serialize
 import qualified WiredTiger.Raw as WT
-import qualified WiredTiger.Schema as WT
+import qualified WiredTiger.Binary as WT
+
 
 data Customer = Customer
   { customerName :: String,
@@ -15,7 +16,7 @@ data Customer = Customer
   }
   deriving (Show)
 
-instance Serialize Customer where
+instance WT.Binary Customer where
   put Customer {customerName, customerAddress, customerPhone} =
     do
       WT.putString customerName
@@ -39,7 +40,7 @@ data Call = Call
   }
   deriving (Show)
 
-instance Serialize Call where
+instance WT.Binary Call where
   put Call {callDate, callCustomerId, callEmployerId, callType, callNotes} =
     do
       WT.putInt callDate
@@ -93,7 +94,7 @@ main = do
 
       withCursor session "table:customers" (Just "append") $ \cursor ->
         forM_ customers $ \customer -> do
-          WT.cursorSetValue cursor (encode customer)
+          WT.cursorSetValue cursor (toStrict $ WT.encode customer)
           WT.cursorInsert cursor
 
       WT.sessionCreate session "table:calls" $
@@ -109,5 +110,5 @@ main = do
 
       withCursor session "table:calls" (Just "append") $ \cursor ->
         forM_ calls $ \call -> do
-          WT.cursorSetValue cursor (encode call)
+          WT.cursorSetValue cursor (toStrict $ WT.encode call)
           WT.cursorInsert cursor
