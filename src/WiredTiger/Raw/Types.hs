@@ -20,8 +20,8 @@ newtype Connection = Connection (Ptr ConnectionImpl)
 
 data Cursor = Cursor
   { _cursorPtr :: Ptr CursorImpl,
-    _cursorKey :: IORef (Maybe ByteString),
-    _cursorValue :: IORef (Maybe ByteString)
+    _cursorKey :: IORef ByteString,
+    _cursorValue :: IORef ByteString
   }
 
 newtype Session = Session (Ptr SessionImpl)

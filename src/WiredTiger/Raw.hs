@@ -54,7 +54,7 @@ where
 
 import Control.Exception (Exception, throwIO)
 import Data.ByteString
-import Data.IORef (newIORef, writeIORef)
+import Data.IORef (newIORef, writeIORef, readIORef)
 import Foreign
 import Foreign.C.Error
 import Foreign.C.String
@@ -194,7 +194,7 @@ sessionOpenCursor (Session sPtr) uri mConfig =
               return ret;
             }
           |]
-        Cursor <$> peek _cursorPtr <*> newIORef Nothing <*> newIORef Nothing
+        Cursor <$> peek _cursorPtr <*> newIORef empty <*> newIORef empty
 
 sessionAlter :: Session -> String -> Maybe Config -> IO ()
 sessionAlter (Session sPtr) name mConfig =
@@ -281,48 +281,14 @@ cursorValueFormat Cursor {_cursorPtr} =
   [C.exp| const char* { $(WT_CURSOR* _cursorPtr)->value_format } |] >>= peekCString
 
 cursorGetKey :: Cursor -> IO ByteString
-cursorGetKey Cursor {_cursorPtr} =
-  alloca $ \keyPtrPtr ->
-    alloca $ \keyLenPtr -> do
-      withErrorCheck
-        [C.block|
-           int {
-             WT_ITEM item;
-             int ret = $(WT_CURSOR* _cursorPtr)->get_key($(WT_CURSOR* _cursorPtr), &item);
-             if (ret == 0) {
-               *$(const char** keyPtrPtr) = item.data;
-               *$(int* keyLenPtr) = item.size;
-             }
-             return ret;
-           }
-         |]
-      keyPtr <- peek keyPtrPtr
-      keyLen <- peek keyLenPtr
-      packCStringLen (keyPtr, fromIntegral keyLen)
+cursorGetKey Cursor {_cursorKey} = readIORef _cursorKey
 
 cursorGetValue :: Cursor -> IO ByteString
-cursorGetValue Cursor {_cursorPtr} =
-  alloca $ \keyPtrPtr ->
-    alloca $ \keyLenPtr -> do
-      withErrorCheck
-        [C.block|
-           int {
-             WT_ITEM item;
-             int ret = $(WT_CURSOR* _cursorPtr)->get_value($(WT_CURSOR* _cursorPtr), &item);
-             if (ret == 0) {
-               *$(const char** keyPtrPtr) = item.data;
-               *$(int* keyLenPtr) = item.size;
-             }
-             return ret;
-           }
-         |]
-      keyPtr <- peek keyPtrPtr
-      keyLen <- peek keyLenPtr
-      packCStringLen (keyPtr, fromIntegral keyLen)
+cursorGetValue Cursor {_cursorValue} = readIORef _cursorValue
 
 cursorSetKey :: Cursor -> ByteString -> IO ()
 cursorSetKey Cursor {_cursorPtr, _cursorKey} key = do
-  writeIORef _cursorKey (Just key)
+  writeIORef _cursorKey key
   [C.block|
     void {
       WT_ITEM item;
@@ -334,7 +300,7 @@ cursorSetKey Cursor {_cursorPtr, _cursorKey} key = do
 
 cursorSetValue :: Cursor -> ByteString -> IO ()
 cursorSetValue Cursor {_cursorPtr, _cursorValue} value = do
-  writeIORef _cursorValue (Just value)
+  writeIORef _cursorValue value
   [C.block|
     void {
       WT_ITEM item;
