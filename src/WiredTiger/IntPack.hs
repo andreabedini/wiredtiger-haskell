@@ -89,18 +89,18 @@ getWord = do
       | m == pos2ByteMarker .|. 0x10 -> get2Byte
       | otherwise -> getMulti
   where
-    get1Byte = getBits 6 0 . fromIntegral <$> getWord8
+    get1Byte = fromIntegral . getBits 6 0 <$> getWord8
 
     get2Byte = do
-      hi <- getBits 5 0 . fromIntegral <$> getWord8
-      lo <- fromIntegral <$> getWord8
-      let x = hi `shiftL` 8 .|. lo
+      hi <- getBits 5 0 <$> getWord8
+      lo <- getWord8
+      let x = fromIntegral hi `shiftL` 8 .|. fromIntegral lo
       return $ pos1ByteMax + 1 + x
 
     getMulti = do
-      l <- (.&. 0xf) . fromIntegral <$> getWord8
-      rs <- replicateM l (fromIntegral <$> getWord8)
-      let r = foldl (\a x -> a `shiftL` 8 .|. x) 0 rs
+      l <- (.&. 0xf) <$> getWord8
+      rs <- replicateM (fromIntegral l) getWord8
+      let r = foldl (\a x -> a `shiftL` 8 .|. fromIntegral x) (0 :: Word) rs
       return $ 1 + pos2ByteMax + r
 
 getInt :: Get Int
@@ -118,13 +118,13 @@ getInt = do
       | otherwise -> fromIntegral <$> getWord
   where
     getMulti = do
-      l <- (8 -) . (.&. 0xf) . fromIntegral <$> getWord8
-      rs <- replicateM l (fromIntegral <$> getWord8)
-      return $ foldl (\a x -> a `shiftL` 8 .|. x) maxBound rs
+      l <- (8 -) . (.&. 0xf) <$> getWord8
+      rs <- replicateM (fromIntegral l) getWord8
+      return $ foldl (\a x -> a `shiftL` 8 .|. fromIntegral x) (maxBound :: Int) rs
 
     get2Byte = do
-      hi <- fromIntegral . getBits 5 0 <$> getWord8
-      lo <- fromIntegral <$> getWord8
-      return $ neg2ByteMin + (hi `shiftL` 8 .|. lo)
+      hi <- getBits 5 0 <$> getWord8
+      lo <- getWord8
+      return $ neg2ByteMin + (fromIntegral hi `shiftL` 8 .|. fromIntegral lo)
 
     get1Byte = (+ neg1ByteMin) . fromIntegral . getBits 6 0 <$> getWord8
