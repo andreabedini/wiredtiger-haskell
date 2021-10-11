@@ -17,6 +17,10 @@ main = do
   WT.cursorSetValue cursor "value1"
   WT.cursorInsert cursor
 
+  WT.cursorSetKey cursor "key2"
+  WT.cursorSetValue cursor "value2"
+  WT.cursorInsert cursor
+
   WT.cursorReset cursor
 
   whileM $

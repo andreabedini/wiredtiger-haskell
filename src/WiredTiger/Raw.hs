@@ -54,7 +54,7 @@ where
 
 import Control.Exception (Exception, throwIO)
 import Data.ByteString
-import Data.IORef (newIORef, writeIORef, readIORef)
+import Data.IORef (newIORef, writeIORef)
 import Foreign
 import Foreign.C.Error
 import Foreign.C.String
@@ -546,13 +546,47 @@ cursorValueFormat Cursor {_cursorPtr} =
 cursorGetKey
   :: Cursor
   -> IO ByteString
-cursorGetKey Cursor {_cursorKey} = readIORef _cursorKey
+cursorGetKey Cursor {_cursorPtr} = do
+  alloca $ \keyPtrPtr ->
+    alloca $ \keyLenPtr -> do
+      withErrorCheck
+        [C.block|
+           int {
+             WT_ITEM item;
+             int ret = $(WT_CURSOR* _cursorPtr)->get_value($(WT_CURSOR* _cursorPtr), &item);
+             if (ret == 0) {
+               *$(const char** keyPtrPtr) = item.data;
+               *$(int* keyLenPtr) = item.size;
+             }
+             return ret;
+           }
+         |]
+      keyPtr <- peek keyPtrPtr
+      keyLen <- peek keyLenPtr
+      packCStringLen (keyPtr, fromIntegral keyLen)
 
 -- | Get the value for the current record.
 cursorGetValue
   :: Cursor
   -> IO ByteString
-cursorGetValue Cursor {_cursorValue} = readIORef _cursorValue
+cursorGetValue Cursor {_cursorPtr} = do
+  alloca $ \valuePtrPtr ->
+    alloca $ \valueLenPtr -> do
+      withErrorCheck
+        [C.block|
+           int {
+             WT_ITEM item;
+             int ret = $(WT_CURSOR* _cursorPtr)->get_value($(WT_CURSOR* _cursorPtr), &item);
+             if (ret == 0) {
+               *$(const char** valuePtrPtr) = item.data;
+               *$(int* valueLenPtr) = item.size;
+             }
+             return ret;
+           }
+         |]
+      valuePtr <- peek valuePtrPtr
+      valueLen <- peek valueLenPtr
+      packCStringLen (valuePtr, fromIntegral valueLen)
 
 -- | Set the key for the next operation.
 cursorSetKey
