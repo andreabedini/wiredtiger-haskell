@@ -9,11 +9,12 @@ where
 import Data.Binary
 import WiredTiger.IntPack
 import Data.Binary.Get (getLazyByteStringNul)
-import Data.Binary.Put (putStringUtf8)
-import Data.ByteString.Lazy.UTF8 (toString)
+import Data.Binary.Put (putLazyByteString)
+import Data.Text.Lazy qualified as T
+import Data.Text.Lazy.Encoding qualified as T
 
 putString :: String -> Put
-putString str = putStringUtf8 str <> putWord8 0
+putString str = putLazyByteString (T.encodeUtf8 $ T.pack str) <> putWord8 0
 
 getString :: Get String
-getString = toString <$> getLazyByteStringNul
+getString = T.unpack . T.decodeUtf8 <$> getLazyByteStringNul
