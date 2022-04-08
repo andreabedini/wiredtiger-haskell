@@ -72,8 +72,7 @@ type Uri = String
 
 withNullableCString
   :: Maybe String
-  -> (CString
-  -> IO a)
+  -> (CString -> IO a)
   -> IO a
 withNullableCString = maybe ($ nullPtr) withCString
 
